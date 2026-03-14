@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 助手 (全模型+导出版)</title>
-    <!-- 引入 Puter.js -->
+    <title>AI 助手 (终极专业版)</title>
     <script src="https://js.puter.com/v2/"></script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
             --primary: #10a37f; --bg-main: #f4f5f7; --bg-chat: #ffffff;
             --text-main: #333333; --border: #e0e0e0; --sidebar-bg: #202123;
-            --sidebar-hover: #343541;
+            --sidebar-hover: #343541; --btn-hover: #f0f0f0;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -19,175 +18,164 @@
             color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* 顶部导航栏 */
+        /* 顶部导航 */
         header {
             height: 56px; background-color: var(--bg-chat); border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between; padding: 0 10px; z-index: 10; flex-shrink: 0;
         }
         .header-left { display: flex; align-items: center; gap: 5px; }
         .menu-btn { font-size: 22px; background: none; border: none; padding: 5px; cursor: pointer; color: #333; }
-        .app-title { font-weight: bold; font-size: 16px; margin-left: 2px;}
         
         .header-right { display:flex; gap:6px; align-items:center; }
-        .model-select { padding: 5px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; outline: none; max-width: 120px; background: #fff;}
-        .icon-btn { font-size: 14px; background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 5px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center;}
-        .icon-btn:active { background: #f0f0f0; }
-        .reset-btn { font-size: 12px; padding: 5px 8px; border-radius: 4px; background: #ff4d4f; color: white; border: none; cursor: pointer; }
+        .model-select { padding: 5px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; max-width: 100px; background: #fff;}
+        .icon-btn { font-size: 14px; background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; cursor: pointer; display: flex; align-items: center; }
+        .icon-btn:active { background: var(--btn-hover); }
 
-        /* 侧边栏及遮罩 */
+        /* 侧边栏 */
         #sidebar {
             position: fixed; top: 0; left: 0; bottom: 0; width: 260px; background-color: var(--sidebar-bg);
-            color: #ececf1; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column;
+            color: #ececf1; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease; display: flex; flex-direction: column;
         }
         #sidebar.open { transform: translateX(0); }
-        #overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
-            z-index: 999; opacity: 0; visibility: hidden; transition: opacity 0.3s;
-        }
+        #overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; visibility: hidden; transition: 0.3s; }
         #overlay.open { opacity: 1; visibility: visible; }
         .sidebar-header { padding: 15px; border-bottom: 1px solid #333; }
-        .new-chat-btn {
-            width: 100%; padding: 12px; background: transparent; border: 1px solid #555;
-            color: #fff; border-radius: 6px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
+        .new-chat-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid #555; color: #fff; border-radius: 6px; cursor: pointer; transition: 0.2s; }
         .new-chat-btn:active { background: var(--sidebar-hover); }
         #session-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
-        .session-item {
-            padding: 12px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: #ccc;
-        }
+        .session-item { padding: 12px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: #ccc; }
         .session-item.active { background-color: var(--sidebar-hover); color: #fff; font-weight: bold; }
         .session-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; pointer-events: none; }
         .delete-btn { background: none; border: none; color: #ff6b6b; font-size: 16px; padding: 0 5px; }
 
-        /* 聊天主区域 */
-        #chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
-        .msg-wrapper { display: flex; width: 100%; }
-        .msg-wrapper.user { justify-content: flex-end; }
-        .msg-bubble { max-width: 85%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.5; word-wrap: break-word; }
+        /* 聊天区 */
+        #chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 20px; }
+        .msg-wrapper { display: flex; flex-direction: column; width: 100%; align-items: flex-start; }
+        .msg-wrapper.user { align-items: flex-end; }
+        
+        .msg-bubble { max-width: 85%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.5; word-wrap: break-word; position: relative; user-select: none; /* 防止长按选中文本 */ }
         .msg-wrapper.user .msg-bubble { background-color: var(--primary); color: #fff; border-bottom-right-radius: 2px; }
         .msg-wrapper.ai .msg-bubble { background-color: var(--bg-chat); border: 1px solid var(--border); border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .sys-text { color: #d93025; font-size: 13px; margin-top: 5px; font-weight: bold; }
+        
+        /* 思考过程折叠样式 */
+        details.think-box { margin-bottom: 10px; background: #f9f9f9; padding: 8px; border-radius: 6px; border: 1px solid #eee; font-size: 13.5px; color: #666; }
+        details.think-box summary { cursor: pointer; font-weight: bold; outline: none; }
 
-        /* 转圈圈加载特效 */
-        .loading-container { display: flex; align-items: center; gap: 10px; color: #666; font-size: 14px; font-weight: 500; }
-        .spinner {
-            width: 18px; height: 18px; border: 2.5px solid #e0e0e0; border-top-color: var(--primary);
-            border-radius: 50%; animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* 消息底部操作栏 (分支、编辑、重试) */
+        .msg-actions { display: flex; gap: 15px; font-size: 13px; color: #888; margin-top: 6px; padding: 0 5px; align-items: center; }
+        .action-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 2px 5px; font-size: 13px; display: flex; align-items: center; gap: 3px; }
+        .action-btn:hover { color: var(--primary); }
+        .branch-nav { display: flex; gap: 8px; align-items: center; }
+        
+        /* 编辑框 */
+        .edit-area { width: 100%; max-width: 85%; display: flex; flex-direction: column; gap: 5px; }
+        .edit-area textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); outline: none; font-family: inherit; resize: vertical; min-height: 80px; }
+        .edit-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* 长按元数据提示框 */
+        #meta-tooltip { position: fixed; background: rgba(0,0,0,0.8); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; pointer-events: none; z-index: 2000; opacity: 0; transition: 0.2s; white-space: pre-wrap; transform: translate(-50%, -100%); margin-top: -10px; }
 
         /* 底部输入区 */
-        footer { background-color: var(--bg-chat); border-top: 1px solid var(--border); padding: 10px 15px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+        footer { background-color: var(--bg-chat); border-top: 1px solid var(--border); padding: 10px 15px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+        
+        /* 附件预览区 */
+        #attachment-preview { display: none; align-items: center; gap: 10px; padding: 5px 10px; background: var(--bg-main); border-radius: 8px; font-size: 13px; color: var(--primary); border: 1px solid var(--border); }
+        #attachment-preview img { max-height: 40px; border-radius: 4px; }
+        .remove-attach { cursor: pointer; color: #ff4d4f; font-weight: bold; }
+
+        .input-row { display: flex; align-items: flex-end; gap: 8px; }
+        .tools-btn { background: none; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; flex-shrink: 0; margin-bottom: 2px; }
         #user-input { flex: 1; border: 1px solid var(--border); border-radius: 20px; padding: 10px 15px; font-size: 16px; max-height: 100px; outline: none; resize: none; font-family: inherit; background: var(--bg-main); }
-        #user-input:focus { border-color: var(--primary); }
-        #send-btn { background-color: var(--primary); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 2px; cursor: pointer; transition: 0.2s; }
-        #send-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        #send-btn { background-color: var(--primary); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-bottom: 2px; cursor: pointer; }
+        #send-btn:disabled { background-color: #ccc; }
         #send-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-        /* 隐藏移动端原生 optgroup 默认样式过大问题，靠原生系统渲染 */
+        .spinner { width: 14px; height: 14px; border: 2px solid #ccc; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- 侧边栏及遮罩 -->
+    <div id="meta-tooltip"></div>
     <div id="overlay" onclick="toggleSidebar(false)"></div>
+    
     <div id="sidebar">
-        <div class="sidebar-header">
-            <button class="new-chat-btn" onclick="newSession()">➕ 新建会话</button>
-        </div>
+        <div class="sidebar-header"><button class="new-chat-btn" onclick="newSession()">➕ 新建会话</button></div>
         <div id="session-list"></div>
     </div>
 
-    <!-- 顶部导航 -->
     <header>
         <div class="header-left">
             <button class="menu-btn" onclick="toggleSidebar(true)">☰</button>
-            <span class="app-title">AI</span>
+            <span style="font-weight: bold; font-size: 15px;">AI Pro</span>
         </div>
         <div class="header-right">
-            <!-- 导出为 TXT 按钮 -->
-            <button class="icon-btn" onclick="exportToTXT()" title="导出当前对话为TXT文件">📥</button>
-            
-            <!-- 分组全模型列表 -->
+            <label style="font-size: 12px; display:flex; align-items:center; gap:2px; color:#555;">
+                <input type="checkbox" id="think-toggle"> 思考
+            </label>
             <select id="model-select" class="model-select">
-                <optgroup label="Gemini 3.1 系列">
-                    <option value="gemini-3.1-pro-preview">3.1 Pro (推荐)</option>
-                    <option value="gemini-3.1-flash-lite-preview">3.1 Flash Lite</option>
-                </optgroup>
-                <optgroup label="Gemini 3.0 系列">
-                    <option value="gemini-3-pro-preview">3.0 Pro</option>
-                    <option value="gemini-3-flash-preview">3.0 Flash</option>
-                </optgroup>
-                <optgroup label="Gemini 2.5 系列">
-                    <option value="gemini-2.5-pro">2.5 Pro</option>
-                    <option value="gemini-2.5-flash">2.5 Flash</option>
-                    <option value="gemini-2.5-flash-lite">2.5 Flash Lite</option>
-                    <option value="gemini-2.5-pro-preview">2.5 Pro 预览版</option>
-                    <option value="gemini-2.5-pro-preview-05-06">2.5 Pro 0506</option>
-                    <option value="gemini-2.5-flash-preview-09-2025">2.5 Flash 0925</option>
-                    <option value="gemini-2.5-flash-lite-preview-09-2025">2.5 FlashLite 0925</option>
-                </optgroup>
-                <optgroup label="Gemini 2.0 系列">
-                    <option value="gemini-2.0-flash">2.0 Flash</option>
-                    <option value="gemini-2.0-flash-lite">2.0 Flash Lite</option>
-                    <option value="gemini-2.0-flash-001">2.0 Flash 001</option>
-                    <option value="gemini-2.0-flash-lite-001">2.0 FlashLite 001</option>
-                </optgroup>
+                <option value="gemini-3.1-pro-preview">3.1 Pro</option>
+                <option value="gemini-3.1-flash-lite-preview">3.1 FlashLite</option>
+                <option value="gemini-2.5-pro">2.5 Pro</option>
+                <option value="gemini-2.5-flash">2.5 Flash</option>
             </select>
-
-            <button class="reset-btn" onclick="forceUnlock()">解锁</button>
+            <button class="icon-btn" onclick="exportToTXT()" title="导出TXT">📥</button>
         </div>
     </header>
 
-    <!-- 聊天内容区 -->
     <div id="chat-container"></div>
 
-    <!-- 底部输入区 -->
     <footer>
-        <textarea id="user-input" rows="1" placeholder="输入消息..."></textarea>
-        <button id="send-btn" onclick="sendMessage()">
-            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
+        <div id="attachment-preview">
+            <span id="attach-content"></span>
+            <span class="remove-attach" onclick="clearAttachment()">✖</span>
+        </div>
+        <div class="input-row">
+            <input type="file" id="file-upload" accept="image/*,.txt,.md,.json" style="display:none" onchange="handleFileUpload(event)">
+            <button class="tools-btn" onclick="document.getElementById('file-upload').click()">📎</button>
+            <textarea id="user-input" rows="1" placeholder="输入消息..."></textarea>
+            <button id="send-btn" onclick="handleSend()">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
     </footer>
 
 <script>
-    const STORAGE_KEY = 'v5_puter_sessions';
+    // ==== 核心数据结构升级 (Tree 结构) ====
+    const STORAGE_KEY = 'v6_puter_tree_sessions';
     let sessions = [];
     let currentSessionId = null;
     let isGenerating = false;
+    let currentAttachment = null; // { type: 'text'|'image', data: '...' }
 
+    // DOM Elements
     const chatContainer = document.getElementById('chat-container');
     const inputEl = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    const sessionListEl = document.getElementById('session-list');
+    const thinkToggle = document.getElementById('think-toggle');
+    const metaTooltip = document.getElementById('meta-tooltip');
+    
+    // --- 工具函数 ---
+    function genID() { return 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5); }
+    function safeTitle(text) { return Array.from(text).slice(0, 12).join('') + (Array.from(text).length > 12 ? '...' : ''); }
+    function escapeHTML(str) { return (str||'').replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)); }
 
-    function generateUUID() {
-        return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    // 解析 <think> 标签为可折叠 UI
+    function formatContent(text) {
+        let escaped = escapeHTML(text);
+        escaped = escaped.replace(/&lt;think&gt;([\s\S]*?)&lt;\/think&gt;/g, function(match, p1) {
+            return `<details class="think-box"><summary>🧠 思考过程</summary><div>${p1.replace(/\n/g, '<br>')}</div></details>`;
+        });
+        return escaped.replace(/\n/g, '<br>');
     }
 
-    function safeSliceTitle(text) {
-        const chars = Array.from(text);
-        if (chars.length <= 12) return text;
-        return chars.slice(0, 12).join('') + '...';
-    }
-
+    // --- 初始化与存储 ---
     function init() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) sessions = JSON.parse(raw);
-        } catch (e) { sessions = []; }
-        if (!Array.isArray(sessions)) sessions = [];
-
-        currentSessionId = localStorage.getItem('v5_current_id');
-        
+        try { sessions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { sessions = []; }
+        currentSessionId = localStorage.getItem('v6_current_id');
         if (!sessions.find(s => s.id === currentSessionId)) {
-            if (sessions.length > 0) {
-                currentSessionId = sessions[0].id;
-            } else {
-                createEmptySession();
-            }
+            if (sessions.length > 0) currentSessionId = sessions[0].id;
+            else createEmptySession();
         }
         renderSidebar();
         renderChat();
@@ -195,228 +183,375 @@
 
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-        localStorage.setItem('v5_current_id', currentSessionId);
+        localStorage.setItem('v6_current_id', currentSessionId);
     }
 
     function createEmptySession() {
-        currentSessionId = generateUUID();
-        sessions.unshift({ id: currentSessionId, title: '新会话', messages: [] });
+        const sid = 'sess_' + Date.now();
+        // 树形结构: nodes 是字典，currentNodeId 指向当前对话末端
+        sessions.unshift({ id: sid, title: '新会话', nodes: {}, currentNodeId: null });
+        currentSessionId = sid;
         saveData();
     }
 
-    function toggleSidebar(show) {
-        if (show) { sidebar.classList.add('open'); overlay.classList.add('open'); }
-        else { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
-    }
-
-    function forceUnlock() {
-        isGenerating = false;
-        inputEl.disabled = false;
-        sendBtn.disabled = false;
-        alert("已强制解锁！您可以重新发送消息。");
-    }
-
-    // ==== 核心：一键导出为 TXT 功能 ====
-    function exportToTXT() {
-        const session = sessions.find(s => s.id === currentSessionId);
-        if (!session || session.messages.length === 0) {
-            alert("当前没有任何聊天记录可以导出！");
-            return;
-        }
-
-        // 拼接纯文本内容
-        let textContent = `==== 聊天记录 ====\n`;
-        textContent += `会话标题: ${session.title}\n`;
-        textContent += `导出时间: ${new Date().toLocaleString()}\n`;
-        textContent += `==================\n\n`;
-
-        session.messages.forEach(msg => {
-            const roleName = msg.role === 'user' ? '👤 用户' : '🤖 AI助手';
-            textContent += `\({roleName}:\n\){msg.content}\n\n`;
-        });
-
-        textContent += `==== 记录结束 ====\n`;
-
-        // 创建下载链接
-        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        // 文件名过滤掉可能引起错误的特殊字符
-        const safeTitle = session.title.replace(/[\\/:*?"<>|]/g, '_');
-        a.download = `${safeTitle}.txt`;
+    // --- 文件上传处理 ---
+    function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const preview = document.getElementById('attachment-preview');
+        const contentSpan = document.getElementById('attach-content');
         
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                currentAttachment = { type: 'image', data: ev.target.result };
+                contentSpan.innerHTML = `<img src="${ev.target.result}">`;
+                preview.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                currentAttachment = { type: 'text', data: `\n\n[附件文件: ${file.name}]\n${ev.target.result}` };
+                contentSpan.innerText = `📄 ${file.name}`;
+                preview.style.display = 'flex';
+            };
+            reader.readAsText(file);
+        }
+        e.target.value = '';
+    }
+    function clearAttachment() {
+        currentAttachment = null;
+        document.getElementById('attachment-preview').style.display = 'none';
     }
 
-    function newSession() {
-        isGenerating = false; 
-        inputEl.disabled = false;
-        sendBtn.disabled = false;
-        createEmptySession(); 
-        renderSidebar();
-        renderChat();
-        toggleSidebar(false); 
+    // --- 会话 UI 管理 ---
+    function toggleSidebar(show) {
+        document.getElementById('sidebar').classList.toggle('open', show);
+        document.getElementById('overlay').classList.toggle('open', show);
+    }
+    function newSession() { if(isGenerating)return; createEmptySession(); renderSidebar(); renderChat(); toggleSidebar(false); }
+    function switchSession(id) { if(isGenerating)return; currentSessionId = id; saveData(); renderSidebar(); renderChat(); toggleSidebar(false); }
+
+    // --- 获取当前聊天链 (从末端逆推到根) ---
+    function getActiveThread(session) {
+        const thread = [];
+        let curr = session.currentNodeId;
+        while (curr && session.nodes[curr]) {
+            thread.unshift(session.nodes[curr]);
+            curr = session.nodes[curr].parentId;
+        }
+        return thread;
     }
 
-    function switchSession(id) {
-        currentSessionId = id;
-        isGenerating = false;
-        inputEl.disabled = false;
-        sendBtn.disabled = false;
-        saveData();
-        renderSidebar();
-        renderChat();
-        toggleSidebar(false);
-    }
-
-    function deleteSession(e, id) {
-        e.stopPropagation();
-        if(!confirm("确定删除此会话吗？")) return;
-        sessions = sessions.filter(s => s.id !== id);
-        if (sessions.length === 0) createEmptySession();
-        else if (currentSessionId === id) currentSessionId = sessions[0].id;
-        saveData();
-        renderSidebar();
-        renderChat();
-    }
-
-    function renderSidebar() {
-        sessionListEl.innerHTML = '';
-        sessions.forEach(s => {
-            const div = document.createElement('div');
-            div.className = `session-item ${s.id === currentSessionId ? 'active' : ''}`;
-            div.onclick = () => switchSession(s.id);
-            div.innerHTML = `<span class="title">\({escapeHTML(s.title)}</span><button class="delete-btn" onclick="deleteSession(event, '\){s.id}')">✖</button>`;
-            sessionListEl.appendChild(div);
-        });
-    }
-
+    // --- 渲染聊天界面 ---
     function renderChat() {
         chatContainer.innerHTML = '';
         const session = sessions.find(s => s.id === currentSessionId);
         if (!session) return;
-        if (session.messages.length === 0) {
-            chatContainer.innerHTML = '<div style="text-align:center; color:#999; margin-top:40px; font-size:14px;">发送一条消息开始对话</div>';
+
+        const thread = getActiveThread(session);
+        if (thread.length === 0) {
+            chatContainer.innerHTML = '<div style="text-align:center; color:#999; margin-top:40px;">发送一条消息开始对话<br><small>(支持长按消息查看元数据)</small></div>';
             return;
         }
-        session.messages.forEach(msg => appendBubble(msg.role, msg.content, false));
-        scrollToBottom();
-    }
 
-    function appendBubble(role, text, isHTML = false) {
-        if (chatContainer.innerHTML.includes("发送一条消息开始对话")) chatContainer.innerHTML = '';
-        const wrapper = document.createElement('div');
-        wrapper.className = `msg-wrapper ${role}`;
-        const bubble = document.createElement('div');
-        bubble.className = 'msg-bubble';
-        
-        if (isHTML) bubble.innerHTML = text;
-        else bubble.innerHTML = escapeHTML(text).replace(/\n/g, '<br>');
-        
-        wrapper.appendChild(bubble);
-        chatContainer.appendChild(wrapper);
-        scrollToBottom();
-        return bubble;
-    }
-
-    function scrollToBottom() {
+        thread.forEach(node => {
+            appendNodeUI(session, node);
+        });
         setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 50);
     }
 
-    async function sendMessage() {
-        if (isGenerating) return; 
-        const text = inputEl.value.trim();
-        if (!text) return;
+    // 渲染单条消息 UI
+    function appendNodeUI(session, node) {
+        if (chatContainer.innerHTML.includes("发送一条消息开始对话")) chatContainer.innerHTML = '';
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-wrapper ${node.role}`;
+        wrapper.id = `ui_${node.id}`;
 
-        let session = sessions.find(s => s.id === currentSessionId);
-        if (!session) return;
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble';
+        
+        // 解析图片
+        let htmlContent = formatContent(node.content);
+        if (node.image) {
+            htmlContent = `<img src="${node.image}" style="max-width:100%; border-radius:8px; margin-bottom:10px;"><br>` + htmlContent;
+        }
+        bubble.innerHTML = htmlContent;
 
-        isGenerating = true;
-        inputEl.value = '';
-        inputEl.style.height = 'auto';
-        inputEl.disabled = true;
-        sendBtn.disabled = true;
+        // --- 长按查看元数据 ---
+        let pressTimer;
+        bubble.addEventListener('touchstart', (e) => {
+            pressTimer = setTimeout(() => showMeta(e, node), 600);
+        });
+        bubble.addEventListener('touchend', () => { clearTimeout(pressTimer); hideMeta(); });
+        bubble.addEventListener('mousedown', (e) => {
+            pressTimer = setTimeout(() => showMeta(e, node), 600);
+        });
+        bubble.addEventListener('mouseup', () => { clearTimeout(pressTimer); hideMeta(); });
+        bubble.addEventListener('mouseleave', () => { clearTimeout(pressTimer); hideMeta(); });
 
-        if (session.title === '新会话') {
-            session.title = safeSliceTitle(text);
-            renderSidebar();
+        wrapper.appendChild(bubble);
+
+        // --- 底部操作栏 (分支导航, 编辑, 重试) ---
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'msg-actions';
+
+        // 1. 分支导航 (如果当前节点的父节点有多个孩子)
+        let siblings = [];
+        if (node.parentId) {
+            const parent = session.nodes[node.parentId];
+            siblings = parent.childrenIds;
+        } else {
+            // 根节点，寻找所有 parentId 为 null 的节点
+            siblings = Object.values(session.nodes).filter(n => !n.parentId).map(n => n.id);
+        }
+
+        if (siblings.length > 1) {
+            const currentIndex = siblings.indexOf(node.id);
+            const nav = document.createElement('div');
+            nav.className = 'branch-nav';
+            nav.innerHTML = `
+                <button class="action-btn" onclick="switchBranch('${node.parentId}', ${currentIndex - 1})" ${currentIndex === 0 ? 'disabled style="opacity:0.3"' : ''}>◀</button>
+                <span>${currentIndex + 1} / ${siblings.length}</span>
+                <button class="action-btn" onclick="switchBranch('${node.parentId}', ${currentIndex + 1})" ${currentIndex === siblings.length - 1 ? 'disabled style="opacity:0.3"' : ''}>▶</button>
+            `;
+            actionsDiv.appendChild(nav);
+        }
+
+        // 2. 编辑按钮 (双端都有)
+        const editBtn = document.createElement('button');
+        editBtn.className = 'action-btn';
+        editBtn.innerHTML = '✏️ 编辑';
+        editBtn.onclick = () => showEditArea(wrapper, node);
+        actionsDiv.appendChild(editBtn);
+
+        // 3. 重试按钮 (AI端)
+        if (node.role === 'ai') {
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'action-btn';
+            retryBtn.innerHTML = '🔄 重试';
+            retryBtn.onclick = () => retryMessage(node);
+            actionsDiv.appendChild(retryBtn);
+        }
+
+        wrapper.appendChild(actionsDiv);
+        chatContainer.appendChild(wrapper);
+    }
+
+    // --- 长按元数据逻辑 ---
+    function showMeta(e, node) {
+        const time = new Date(node.timestamp).toLocaleString();
+        let metaTxt = `ID: ${node.id}\n时间: ${time}\n角色: ${node.role}`;
+        if(node.model) metaTxt += `\n模型: ${node.model}`;
+        metaTooltip.innerText = metaTxt;
+        
+        // 获取触摸或鼠标位置
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        metaTooltip.style.left = clientX + 'px';
+        metaTooltip.style.top = (clientY - 20) + 'px';
+        metaTooltip.style.opacity = '1';
+    }
+    function hideMeta() { metaTooltip.style.opacity = '0'; }
+
+    // --- 分支切换逻辑 ---
+    function switchBranch(parentId, targetIndex) {
+        if (isGenerating) return;
+        const session = sessions.find(s => s.id === currentSessionId);
+        let siblings = parentId === 'null' ? 
+            Object.values(session.nodes).filter(n => !n.parentId).map(n => n.id) : 
+            session.nodes[parentId].childrenIds;
+        
+        const targetNodeId = siblings[targetIndex];
+        // 寻找到该分支的最末端节点
+        let endNodeId = targetNodeId;
+        while (session.nodes[endNodeId].childrenIds.length > 0) {
+            // 默认一直走最后一个子分支
+            endNodeId = session.nodes[endNodeId].childrenIds[session.nodes[endNodeId].childrenIds.length - 1];
+        }
+        session.currentNodeId = endNodeId;
+        saveData();
+        renderChat();
+    }
+
+    // --- 编辑消息逻辑 ---
+    function showEditArea(wrapper, node) {
+        wrapper.innerHTML = '';
+        const editDiv = document.createElement('div');
+        editDiv.className = 'edit-area';
+        editDiv.innerHTML = `
+            <textarea id="edit-box-${node.id}">${node.content}</textarea>
+            <div class="edit-actions">
+                <button class="icon-btn" onclick="renderChat()">取消</button>
+                <button class="icon-btn" style="background:var(--primary);color:white;" onclick="submitEdit('${node.id}')">发送并分支</button>
+            </div>
+        `;
+        wrapper.appendChild(editDiv);
+    }
+
+    function submitEdit(nodeId) {
+        const session = sessions.find(s => s.id === currentSessionId);
+        const node = session.nodes[nodeId];
+        const newText = document.getElementById(`edit-box-${nodeId}`).value.trim();
+        if (!newText) return renderChat(); // 取消编辑
+
+        // 创建新的兄弟节点 (继承同一个 parent)
+        const newNodeId = genID();
+        session.nodes[newNodeId] = {
+            id: newNodeId, parentId: node.parentId, childrenIds: [],
+            role: node.role, content: newText, timestamp: Date.now()
+        };
+        
+        if (node.parentId) {
+            session.nodes[node.parentId].childrenIds.push(newNodeId);
         }
         
-        session.messages.push({ role: 'user', content: text });
-        appendBubble('user', text);
+        session.currentNodeId = newNodeId;
         saveData();
+        renderChat();
 
-        const loadingHTML = `<div class="loading-container"><div class="spinner"></div> 正在思考中...</div>`;
-        const aiBubble = appendBubble('ai', loadingHTML, true);
+        // 如果修改的是用户消息，自动触发 AI 回复
+        if (node.role === 'user') {
+            triggerAIResponse(session);
+        }
+    }
+
+    // --- 重试逻辑 ---
+    function retryMessage(aiNode) {
+        const session = sessions.find(s => s.id === currentSessionId);
+        // 退回到它的父节点 (User节点) 然后重新触发生成
+        session.currentNodeId = aiNode.parentId;
+        saveData();
+        renderChat();
+        triggerAIResponse(session);
+    }
+
+    // --- 核心：发送与 AI 通信 ---
+    function handleSend() {
+        if (isGenerating) return;
+        let text = inputEl.value.trim();
+        if (!text && !currentAttachment) return;
         
+        const session = sessions.find(s => s.id === currentSessionId);
+        
+        // 拼接附件文本
+        if (currentAttachment && currentAttachment.type === 'text') {
+            text += currentAttachment.data;
+        }
+
+        // 添加用户节点
+        const uNodeId = genID();
+        session.nodes[uNodeId] = {
+            id: uNodeId, parentId: session.currentNodeId, childrenIds: [],
+            role: 'user', content: text, timestamp: Date.now(),
+            image: currentAttachment?.type === 'image' ? currentAttachment.data : null
+        };
+        
+        if (session.currentNodeId) session.nodes[session.currentNodeId].childrenIds.push(uNodeId);
+        session.currentNodeId = uNodeId;
+        
+        if (session.title === '新会话') { session.title = safeTitle(text); renderSidebar(); }
+        saveData();
+        
+        inputEl.value = ''; inputEl.style.height = 'auto';
+        clearAttachment();
+        renderChat();
+        
+        triggerAIResponse(session);
+    }
+
+    async function triggerAIResponse(session) {
+        isGenerating = true;
+        inputEl.disabled = true; sendBtn.disabled = true;
+
+        // 预创建 AI 节点
+        const aiNodeId = genID();
+        session.nodes[aiNodeId] = {
+            id: aiNodeId, parentId: session.currentNodeId, childrenIds: [],
+            role: 'ai', content: '<div class="spinner"></div>', timestamp: Date.now(),
+            model: document.getElementById('model-select').value
+        };
+        session.nodes[session.currentNodeId].childrenIds.push(aiNodeId);
+        session.currentNodeId = aiNodeId;
+        saveData();
+        renderChat();
+
+        // 构建历史上下文
+        const thread = getActiveThread(session).slice(0, -1); // 排除当前正在生成的空AI节点
         let promptText = "";
-        session.messages.slice(-5).forEach(m => { promptText += `\({m.role === 'user' ? '用户' : 'AI'}: \){m.content}\n`; });
+        
+        // 思考模式注入
+        if (thinkToggle.checked) {
+            promptText += "[System: Please think step-by-step and wrap your thinking process strictly inside <think> and </think> tags before providing the final answer.]\n\n";
+        }
+
+        // 提取最后 6 条上下文避免过长
+        thread.slice(-6).forEach(n => { promptText += `${n.role === 'user' ? '用户' : 'AI'}: ${n.content}\n`; });
         promptText += "AI:";
 
-        const selectedModel = document.getElementById('model-select').value;
-        const activeReqSessionId = currentSessionId; 
+        // 若用户上传了图片，查找最后一条包含 image 的请求 (Puter.js 文档支持传入 imageUrl)
+        let lastImage = thread[thread.length - 1]?.image;
 
         try {
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("网络拥堵或服务器未响应，请重试")), 15000));
-            const chatPromise = puter.ai.chat(promptText, { model: selectedModel, stream: true });
+            const timeoutP = new Promise((_, r) => setTimeout(() => r(new Error("响应超时")), 15000));
             
-            const stream = await Promise.race([chatPromise, timeoutPromise]);
+            // Puter.js 支持传图片URL或Base64
+            let chatPromise;
+            if (lastImage) {
+                chatPromise = puter.ai.chat(promptText, lastImage, { model: session.nodes[aiNodeId].model, stream: true });
+            } else {
+                chatPromise = puter.ai.chat(promptText, { model: session.nodes[aiNodeId].model, stream: true });
+            }
 
+            const stream = await Promise.race([chatPromise, timeoutP]);
             let fullText = '';
-            let isFirstChunk = true; 
 
             for await (const part of stream) {
-                if (currentSessionId !== activeReqSessionId) break; 
+                if (currentSessionId !== session.id) break; // 切走会话
                 if (part && part.text) {
-                    if (isFirstChunk) { aiBubble.innerHTML = ''; isFirstChunk = false; }
                     fullText += part.text;
-                    aiBubble.innerHTML = escapeHTML(fullText).replace(/\n/g, '<br>');
-                    scrollToBottom();
+                    session.nodes[aiNodeId].content = fullText;
+                    // 局部刷新该气泡，避免重绘整个列表卡顿
+                    const bubble = document.querySelector(`#ui_${aiNodeId} .msg-bubble`);
+                    if (bubble) {
+                        bubble.innerHTML = formatContent(fullText);
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }
                 }
             }
-            
-            if (currentSessionId === activeReqSessionId) {
-                if (!fullText) fullText = "（API无数据返回）";
-                if (isFirstChunk) aiBubble.innerHTML = escapeHTML(fullText);
-                session.messages.push({ role: 'ai', content: fullText });
-                saveData();
-            }
+            if(!fullText) session.nodes[aiNodeId].content = "(API未返回数据)";
 
-        } catch (error) {
-            console.error("请求报错:", error);
-            if (currentSessionId === activeReqSessionId) {
-                const errMsg = `[系统提示: ${error.message}]`;
-                aiBubble.innerHTML = `<div class="sys-text">${errMsg}</div>`; 
-                session.messages.push({ role: 'ai', content: errMsg });
-                saveData();
-            }
+        } catch (err) {
+            session.nodes[aiNodeId].content = `[系统报错: ${err.message}]`;
+            renderChat();
         } finally {
-            if (currentSessionId === activeReqSessionId) {
-                isGenerating = false;
-                inputEl.disabled = false;
-                sendBtn.disabled = false;
-                inputEl.focus();
-            }
+            saveData();
+            isGenerating = false;
+            inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
+            if (currentSessionId === session.id) renderChat(); // 终态全量渲染确保UI正确挂载事件
         }
     }
 
-    function escapeHTML(str) {
-        if (!str) return "";
-        return str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t));
+    // --- 导出 ---
+    function exportToTXT() {
+        const session = sessions.find(s => s.id === currentSessionId);
+        const thread = getActiveThread(session);
+        if (thread.length === 0) return alert("无记录可导出");
+        let txt = `== ${session.title} ==\n\n`;
+        thread.forEach(n => { txt += `${n.role==='user'?'👤 用户':'🤖 AI'}:\n${n.content.replace(/<think>[\s\S]*?<\/think>/g, '[思考过程]')}\n\n`; });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([txt], {type:'text/plain'}));
+        a.download = `${session.title}.txt`;
+        a.click();
     }
 
-    inputEl.addEventListener('input', function() {
-        this.style.height = 'auto'; this.style.height = (this.scrollHeight < 100 ? this.scrollHeight : 100) + 'px';
-    });
-    inputEl.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if(!sendBtn.disabled) sendMessage(); }
-    });
-
+    inputEl.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 100) + 'px'; });
+    inputEl.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
+    
     window.onload = init;
 </script>
 </body>
-    </html>
+</html>
